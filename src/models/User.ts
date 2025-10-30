@@ -4,7 +4,11 @@ const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true }, // hashed using bcrypt
-  role: { type: String, enum: ["superadmin", "admin", "teacher", "student"], required: true },
+  role: {
+    type: String,
+    enum: ["superadmin", "admin", "teacher", "student"],
+    required: true,
+  },
   studentId: { type: String, unique: true, sparse: true }, // for students only, must be unique
   subjects: [{ type: String }], // subjects handled (for teachers)
   assignedTests: [{ type: mongoose.Schema.Types.ObjectId, ref: "Test" }], // for students
@@ -17,6 +21,6 @@ const UserSchema = new mongoose.Schema({
   lastLogin: { type: Date },
 });
 
-const User = mongoose.model("User", UserSchema);
+const User = mongoose.models.User || mongoose.model("User", UserSchema);
 
 export default User;
