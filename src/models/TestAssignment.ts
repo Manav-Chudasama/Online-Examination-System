@@ -30,6 +30,6 @@ const TestAssignmentSchema = new mongoose.Schema({
   completedAt: { type: Date }, // when test was completed
 });
 
-const TestAssignment = mongoose.models.TestAssignment || mongoose.model("TestAssignment", TestAssignmentSchema);
+const TestAssignment = mongoose.model("TestAssignment", TestAssignmentSchema);
 
 export default TestAssignment;
