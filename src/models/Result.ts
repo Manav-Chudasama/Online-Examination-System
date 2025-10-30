@@ -13,16 +13,20 @@ const ResultSchema = new mongoose.Schema({
   answers: [
     {
       questionId: { type: mongoose.Schema.Types.ObjectId, ref: "Question" },
-      chosenOption: { type: Number }, // index of chosen option
+      questionNumber: { type: Number, required: true }, // reference question number
+      chosenOption: { type: Number }, // index of chosen option (0-3 for A-D)
       isCorrect: { type: Boolean },
-      timeTakenSec: { type: Number },
+      timeTakenSec: { type: Number }, // time taken for this question
     },
   ],
-  //   encryptedExcelPath: { type: String }, // path to AES-encrypted Excel file
-  //   aiFeedback: { type: String }, // personalized feedback by AI
+  // encryptedExcelPath: { type: String, required: true }, // path to AES-256 encrypted Excel file
+  resultViewed: { type: Boolean, default: false }, // one-time viewing control
+  viewedAt: { type: Date }, // timestamp when viewed by student
+  testCompleted: { type: Boolean, default: false }, // whether test was completed
+  autoSubmitted: { type: Boolean, default: false }, // if test was auto-submitted on timeout
   submittedAt: { type: Date, default: Date.now },
 });
 
-const Result = mongoose.model("Result", ResultSchema);
+const Result = mongoose.models.Result || mongoose.model("Result", ResultSchema);
 
 export default Result;
