@@ -35,9 +35,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   if (!ready) return null;
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
-      {/* Sidebar */}
-      <aside className="flex flex-col w-20 md:w-64 bg-primary/10 border-r border-border items-center md:items-stretch py-6 gap-4">
+    <div className="min-h-screen w-full bg-background">
+      {/* Fixed Sidebar */}
+      <aside className="fixed inset-y-0 left-0 flex flex-col w-20 md:w-64 bg-primary/10 border-r border-border items-center md:items-stretch py-6 gap-4">
         <div className="flex items-center justify-center text-2xl font-bold tracking-wide text-primary-foreground mb-10 select-none">
           <span className="hidden md:inline">
             EDU-<span className="text-red-600">X</span>
@@ -74,7 +74,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </div>
       </aside>
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex flex-col min-w-0 ml-20 md:ml-64">
         {/* Topbar */}
         <header className="flex items-center justify-between px-8 py-4 border-b border-border bg-background/80 sticky top-0 z-10 backdrop-blur font-sans">
           <span className="text-lg font-semibold text-muted-foreground tracking-tight hidden md:inline">

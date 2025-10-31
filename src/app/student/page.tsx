@@ -57,11 +57,11 @@ export default function StudentDashboard() {
       ) : tests.length === 0 ? (
         <div className="w-full flex flex-col items-center justify-center min-h-[200px] bg-muted border border-border rounded-xl">
           <div className="text-xl text-muted-foreground font-semibold">
-            No Tests Assigned
+            No Pending Tests
           </div>
           <div className="mt-2 text-sm text-muted-foreground">
-            Enjoy your day!{" "}
-            <span className="inline-block animate-bounce">🪁</span>
+            All tests completed! Check the Results tab.{" "}
+            <span className="inline-block animate-bounce">🎉</span>
           </div>
         </div>
       ) : (
@@ -84,14 +84,16 @@ export default function StudentDashboard() {
                 Duration: {t.durationMinutes || 60} min
               </div>
               <div className="text-sm mb-2">
-               Start Time: {t.startTime ? new Date(t.startTime).toLocaleTimeString() : "-"} 
+                Start Time:{" "}
+                {t.startTime ? new Date(t.startTime).toLocaleTimeString() : "-"}
               </div>
               <div className="text-sm mb-2">
-                End Time: {t.endTime ? new Date(t.endTime).toLocaleTimeString() : "-"}
+                End Time:{" "}
+                {t.endTime ? new Date(t.endTime).toLocaleTimeString() : "-"}
               </div>
               <div className="flex items-center gap-4">
-                <Button asChild>
-                  <a href={`/student/test/${t._id}?index=1`}>Start Test</a>
+                <Button asChild className="bg-green-600 hover:bg-green-700">
+                  <a href={`/student/test/${t._id}`}>Start Test</a>
                 </Button>
               </div>
             </div>

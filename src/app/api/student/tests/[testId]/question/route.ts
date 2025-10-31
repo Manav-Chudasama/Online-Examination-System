@@ -37,6 +37,8 @@ export async function GET(
     questionNumber: sub.questionNumber,
     question: decryptString(sub.encryptedQuestion),
     options: sub.encryptedOptions.map((s: string) => decryptString(s)),
+    testTitle: test.title,
+    totalQuestions: (qs as any).questions.length,
   };
   return NextResponse.json(payload);
 }
