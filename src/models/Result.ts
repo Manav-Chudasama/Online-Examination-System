@@ -19,7 +19,6 @@ const ResultSchema = new mongoose.Schema({
       timeTakenSec: { type: Number }, // time taken for this question
     },
   ],
-  encryptedExcelPath: { type: String, required: true }, // path to AES-256 encrypted Excel file
   resultViewed: { type: Boolean, default: false }, // one-time viewing control
   viewedAt: { type: Date }, // timestamp when viewed by student
   testCompleted: { type: Boolean, default: false }, // whether test was completed
@@ -27,6 +26,6 @@ const ResultSchema = new mongoose.Schema({
   submittedAt: { type: Date, default: Date.now },
 });
 
-const Result = mongoose.model("Result", ResultSchema);
+const Result = mongoose.models.Result || mongoose.model("Result", ResultSchema);
 
 export default Result;

@@ -1,18 +1,36 @@
-import { Button } from "@/components/ui/button";
+"use client";
 
-// Mock: set assignedTests = [] to see empty state
-const assignedTests = [
-  {
-    id: "test1",
-    name: "Math 101 Midterm",
-    subject: "Mathematics",
-    date: "2025-11-01",
-    duration: "1h",
-    status: "active",
-  },
-];
+import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+
+type TestRow = {
+  _id: string;
+  title: string;
+  subject: string;
+  durationMinutes?: number;
+};
 
 export default function StudentDashboard() {
+  const [loading, setLoading] = useState(true);
+  const [tests, setTests] = useState<TestRow[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        const r = await fetch("/api/student/assignments/today");
+        const data = await r.json();
+        if (r.ok) {
+          setTests(data.tests || []);
+          console.log(data.tests);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
   return (
     <div className="flex flex-col gap-8">
       <h1 className="text-2xl font-bold tracking-tight text-green-700 mb-4">
@@ -32,7 +50,11 @@ export default function StudentDashboard() {
         <span className="ml-3 text-green-800 animate-pulse">●</span>
       </div>
 
-      {assignedTests.length === 0 ? (
+      {loading ? (
+        <div className="w-full flex flex-col items-center justify-center min-h-[200px] bg-muted border border-border rounded-xl">
+          Loading tests...
+        </div>
+      ) : tests.length === 0 ? (
         <div className="w-full flex flex-col items-center justify-center min-h-[200px] bg-muted border border-border rounded-xl">
           <div className="text-xl text-muted-foreground font-semibold">
             No Tests Assigned
@@ -44,24 +66,33 @@ export default function StudentDashboard() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {assignedTests.map((t) => (
+          {tests.map((t) => (
             <div
-              key={t.id}
+              key={String(t._id)}
               className="rounded-2xl bg-white border border-border shadow-sm p-6 flex flex-col gap-2 animate-in"
             >
               <div className="font-bold text-lg text-green-800 mb-1">
-                {t.name}
+                {t.title || "Test"}
               </div>
               <div className="text-sm mb-1">
                 Subject:{" "}
-                <span className="font-medium text-green-600">{t.subject}</span>
+                <span className="font-medium text-green-600">
+                  {t.subject || "-"}
+                </span>
               </div>
               <div className="text-sm mb-2">
-                Date: {t.date} <span className="mx-2">|</span> Duration:{" "}
-                {t.duration}
+                Duration: {t.durationMinutes || 60} min
+              </div>
+              <div className="text-sm mb-2">
+               Start Time: {t.startTime ? new Date(t.startTime).toLocaleTimeString() : "-"} 
+              </div>
+              <div className="text-sm mb-2">
+                End Time: {t.endTime ? new Date(t.endTime).toLocaleTimeString() : "-"}
               </div>
               <div className="flex items-center gap-4">
-                <Button>Start Test</Button>
+                <Button asChild>
+                  <a href={`/student/test/${t._id}?index=1`}>Start Test</a>
+                </Button>
               </div>
             </div>
           ))}

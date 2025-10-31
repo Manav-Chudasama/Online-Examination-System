@@ -2,35 +2,34 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthOrThrow } from "@/lib/with-auth";
 import dbConnect from "@/lib/mongoose-connect";
 import Question from "@/models/Question";
-import TestAssignment from "@/models/TestAssignment";
 import Test from "@/models/Test";
 import { decryptString } from "@/lib/encryption";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { testId: string } }
+  ctx: { params: Promise<{ testId: string }> }
 ) {
   const auth = await getAuthOrThrow("student");
   if ("error" in auth) return auth.error;
   await dbConnect();
+  const { testId } = await ctx.params;
   const indexStr = req.nextUrl.searchParams.get("index") || "1";
   const index = Math.max(1, parseInt(indexStr));
 
-  const assignment = await TestAssignment.findOne({
-    testId: params.testId,
-    studentId: auth.user.id,
+  // Ensure this student is assigned to the test via Test.assignedStudents
+  const test = await Test.findOne({
+    _id: testId,
+    assignedStudents: auth.user.id,
   }).lean();
-  if (!assignment)
+  if (!test)
     return NextResponse.json({ error: "Not assigned" }, { status: 403 });
 
-  const test = await Test.findById(params.testId).lean();
-  if (!test)
-    return NextResponse.json({ error: "Test not found" }, { status: 404 });
-
-  const qs = await Question.findOne({ testId: params.testId }).lean();
+  const qs = await Question.findOne({ testId }).lean();
   if (!qs) return NextResponse.json({ error: "No questions" }, { status: 404 });
 
-  const sub = qs.questions.find((q: any) => q.questionNumber === index);
+  const sub = (qs as any).questions.find(
+    (q: any) => q.questionNumber === index
+  );
   if (!sub)
     return NextResponse.json({ error: "Out of range" }, { status: 404 });
 

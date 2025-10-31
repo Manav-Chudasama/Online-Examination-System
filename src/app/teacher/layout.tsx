@@ -6,16 +6,18 @@ import {
   HomeIcon,
   FilePlusIcon,
   FileTextIcon,
-  CheckCircle2Icon,
   BarChart2Icon,
+  ClockIcon,
+  LogOutIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 const navLinks = [
   { name: "Dashboard", href: "/teacher", icon: HomeIcon },
+  { name: "Tests", href: "/teacher/tests", icon: ClockIcon },
   { name: "Questions", href: "/teacher/questions", icon: FilePlusIcon },
   { name: "Terms", href: "/teacher/terms", icon: FileTextIcon },
-  { name: "Answers", href: "/teacher/answers", icon: CheckCircle2Icon },
   { name: "Results", href: "/teacher/results", icon: BarChart2Icon },
 ];
 
@@ -41,8 +43,9 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
   if (!ready) return null;
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
-      <aside className="flex flex-col w-20 md:w-60 bg-blue-100 border-r border-border items-center md:items-stretch py-6 gap-4">
+    <div className="min-h-screen w-full bg-background">
+      {/* Fixed Sidebar */}
+      <aside className="fixed inset-y-0 left-0 flex flex-col w-20 md:w-60 bg-blue-100 border-r border-border items-center md:items-stretch py-6 gap-4">
         <div className="flex items-center justify-center text-2xl font-bold tracking-wide text-blue-700 mb-10 select-none">
           <span className="hidden md:inline">TEACHER</span>
           <span className="md:hidden">T</span>
@@ -62,8 +65,23 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </nav>
+        <div className="flex-0 flex flex-col gap-2 px-2.5 md:px-5 mt-2">
+          <Button
+            variant="secondary"
+            className="w-full"
+            size="sm"
+            onClick={async () => {
+              await fetch("/api/auth/logout", { method: "POST" });
+              router.replace("/login");
+            }}
+          >
+            <LogOutIcon className="size-5 mr-2" /> Logout
+          </Button>
+        </div>
       </aside>
-      <div className="flex-1 flex flex-col min-w-0">
+
+      {/* Main Content */}
+      <div className="flex flex-col min-w-0 ml-20 md:ml-60">
         <header className="flex items-center justify-between px-8 py-4 border-b border-border bg-background sticky top-0 z-10 font-sans">
           <span className="text-lg font-semibold text-blue-700 tracking-tight hidden md:inline">
             Teacher Panel

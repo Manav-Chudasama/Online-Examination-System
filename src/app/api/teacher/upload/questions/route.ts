@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongoose-connect";
 import Question from "@/models/Question";
 import { encryptString } from "@/lib/encryption";
+import { getAuthOrThrow } from "@/lib/with-auth";
+import Test from "@/models/Test";
+
+export const runtime = "nodejs";
 
 async function readFileToText(
   file: File
@@ -12,46 +16,54 @@ async function readFileToText(
   if (name.endsWith(".txt")) {
     return { text: buf.toString("utf8"), type: "txt" };
   }
+  if (name.endsWith(".doc")) {
+    throw new Error(
+      ".doc is not supported. Please save as .docx and try again."
+    );
+  }
   if (name.endsWith(".docx")) {
     try {
-      const mammoth = await import("mammoth");
-      const res = await mammoth.extractRawText({ buffer: buf });
-      return { text: res.value || "", type: "docx" };
+      const mammothMod = (await import("mammoth")) as any;
+      const extract =
+        mammothMod?.extractRawText || mammothMod?.default?.extractRawText;
+      if (typeof extract !== "function")
+        throw new Error("mammoth extractRawText not found");
+      const res = await extract({ buffer: buf });
+      return { text: res?.value || "", type: "word" };
     } catch (e) {
-      throw new Error("DOCX parsing not available. Please install 'mammoth'.");
+      throw new Error(
+        "DOCX parsing not available. Ensure 'mammoth' is installed on the server runtime."
+      );
     }
   }
   if (name.endsWith(".pptx")) {
-    try {
-      const { default: PptxReader } = await import("pptx-parser" as any);
-      const reader = new (PptxReader as any)();
-      const slides = await reader.read(buf);
-      const texts: string[] = [];
-      for (const slide of slides) {
-        if (slide.text) texts.push(slide.text);
-      }
-      return { text: texts.join("\n\n"), type: "pptx" };
-    } catch (e) {
-      throw new Error(
-        "PPTX parsing not available. Please install a pptx parser."
-      );
-    }
+    // PPTX parsing placeholder: upstream parser varies; allow .pptx via guide/template
+    return { text: buf.toString("utf8"), type: "powerpoint" };
   }
   throw new Error("Unsupported file type. Please upload .docx, .pptx, or .txt");
 }
 
-// Very simple MCQ parser supporting formats like:
-// Q1. Question text\nA) ...\nB) ...\nC) ...\nD) ...\nAnswer: C
 function parseMcqsFromText(text: string) {
-  const blocks = text
+  const out: { question: string; options: string[]; answerIndex: number }[] =
+    [];
+  const normalized = text.replace(/\u00A0/g, " ").replace(/\r/g, "");
+  const re =
+    /Q\s*(\d+)\.\s*([\s\S]*?)\n+\s*A\)\s*([\s\S]*?)\n+\s*B\)\s*([\s\S]*?)\n+\s*C\)\s*([\s\S]*?)\n+\s*D\)\s*([\s\S]*?)\n+\s*Answer\s*:\s*([A-D])/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(normalized)) !== null) {
+    const q = m[2].trim();
+    const opts = [m[3], m[4], m[5], m[6]].map((s) => s.trim());
+    const ans = (m[7] || "A").toUpperCase().charCodeAt(0) - 65;
+    if (q && opts.every(Boolean))
+      out.push({ question: q, options: opts, answerIndex: ans });
+  }
+  if (out.length > 0) return out;
+
+  // Fallback: block parsing for simpler cases
+  const blocks = normalized
     .split(/\n\s*\n/)
     .map((b) => b.trim())
     .filter(Boolean);
-  const questions: {
-    question: string;
-    options: string[];
-    answerIndex: number;
-  }[] = [];
   for (const block of blocks) {
     const lines = block
       .split(/\n/)
@@ -66,22 +78,24 @@ function parseMcqsFromText(text: string) {
     const ansLine = lines.find((l) => /^answer\s*:/i.test(l));
     let answerIndex = 0;
     if (ansLine) {
-      const m = ansLine.match(/[A-D]/i);
-      if (m) answerIndex = m[0].toUpperCase().charCodeAt(0) - 65;
+      const mm = ansLine.match(/[A-D]/i);
+      if (mm) answerIndex = mm[0].toUpperCase().charCodeAt(0) - 65;
     }
     if (opts.length === 4)
-      questions.push({ question: qline, options: opts, answerIndex });
+      out.push({ question: qline, options: opts, answerIndex });
   }
-  return questions;
+  return out;
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await getAuthOrThrow(["teacher", "admin", "superadmin"]);
+  if ("error" in auth) return auth.error;
   await dbConnect();
   const form = await req.formData();
   const file = form.get("file");
   const subject = String(form.get("subject") || "");
   const testId = String(form.get("testId") || "");
-  const createdBy = String(form.get("createdBy") || "");
+  const createdBy = auth.user.id;
 
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "file required" }, { status: 400 });
@@ -93,7 +107,10 @@ export async function POST(req: NextRequest) {
 
     if (parsed.length === 0) {
       return NextResponse.json(
-        { error: "No questions detected" },
+        {
+          error:
+            "No questions detected. Verify the format: Q1., A) .., B) .., C) .., D) .., Answer: X",
+        },
         { status: 400 }
       );
     }
@@ -111,9 +128,14 @@ export async function POST(req: NextRequest) {
         encryptedOptions: q.options.map(encryptString),
         correctAnswerIndex: q.answerIndex,
       })),
-    };
+    } as any;
 
-    const saved = await Question.create(questionsDoc as any);
+    await Question.deleteMany({ testId });
+    const saved = await Question.create(questionsDoc);
+    await Test.findByIdAndUpdate(testId, {
+      $set: { totalQuestions: parsed.length, fileType: type },
+    });
+
     return NextResponse.json({ ok: true, count: parsed.length, id: saved._id });
   } catch (e: any) {
     return NextResponse.json(

@@ -3,26 +3,33 @@ import { getAuthOrThrow } from "@/lib/with-auth";
 import dbConnect from "@/lib/mongoose-connect";
 import Result from "@/models/Result";
 import Question from "@/models/Question";
+import Test from "@/models/Test";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { testId: string } }
+  ctx: { params: Promise<{ testId: string }> }
 ) {
   const auth = await getAuthOrThrow("student");
   if ("error" in auth) return auth.error;
   await dbConnect();
+  const { testId } = await ctx.params;
   const { questionNumber, chosenOption, timeTakenSec } = await req.json();
 
-  let resDoc = await Result.findOne({
-    student: auth.user.id,
-    test: params.testId,
-  });
+  // ensure assigned
+  const assigned = await Test.findOne({
+    _id: testId,
+    assignedStudents: auth.user.id,
+  }).lean();
+  if (!assigned)
+    return NextResponse.json({ error: "Not assigned" }, { status: 403 });
+
+  let resDoc = await Result.findOne({ student: auth.user.id, test: testId });
   if (!resDoc) {
-    const qs = await Question.findOne({ testId: params.testId }).lean();
-    const totalQuestions = qs ? qs.questions.length : 0;
+    const qs = await Question.findOne({ testId }).lean();
+    const totalQuestions = qs ? (qs as any).questions.length : 0;
     resDoc = await Result.create({
       student: auth.user.id,
-      test: params.testId,
+      test: testId,
       totalQuestions,
       correctAnswers: 0,
       percentage: 0,
@@ -30,7 +37,7 @@ export async function POST(
     });
   }
 
-  const answers = resDoc.answers as any[];
+  const answers = (resDoc.answers as any[]) || [];
   const existing = answers.find((a) => a.questionNumber === questionNumber);
   if (existing) {
     existing.chosenOption = chosenOption;
@@ -38,6 +45,7 @@ export async function POST(
   } else {
     answers.push({ questionNumber, chosenOption, timeTakenSec });
   }
+  resDoc.answers = answers as any;
   await resDoc.save();
   return NextResponse.json({ ok: true, id: resDoc._id });
 }

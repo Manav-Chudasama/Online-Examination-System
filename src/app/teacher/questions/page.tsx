@@ -1,5 +1,7 @@
 "use client";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function downloadWordTemplate() {
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>
@@ -32,28 +34,155 @@ Answer: C
   URL.revokeObjectURL(url);
 }
 
-function downloadPptxTemplateGuide() {
-  const text = `EDU-X PPTX Question Template (One question per slide)\n\nFor each slide:\n- Title: Question text (e.g., "What is 2 + 2?")\n- Body: Four bullet points for options in order A, B, C, D\n- Speaker Notes (optional): Add a line like 'Answer: D' to mark the correct option\n\nExample Slide:\nTitle: Capital of France?\nBullets:\n  • Berlin\n  • Madrid\n  • Paris\n  • Rome\nNotes:\n  Answer: C\n`;
-  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "pptx_questions_template_guide.txt";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+async function downloadPptxTemplate() {
+  try {
+    const PptxGenJS = (await import("pptxgenjs")) as any;
+    const pptx = new (PptxGenJS.default || (PptxGenJS as any))();
+    pptx.layout = "LAYOUT_16x9";
+    const makeSlide = (question: string, options: string[], answer: string) => {
+      const slide = pptx.addSlide();
+      slide.addText(question, {
+        x: 0.5,
+        y: 0.4,
+        w: 9,
+        h: 1,
+        fontSize: 24,
+        bold: true,
+      });
+      slide.addText(
+        options
+          .map((o, i) => `${String.fromCharCode(65 + i)}) ${o}`)
+          .join("\n"),
+        { x: 0.7, y: 1.4, w: 8.5, fontSize: 18, bullet: true, lineSpacing: 18 }
+      );
+      slide.addNotes(`Answer: ${answer}`);
+    };
+    makeSlide("What is 2 + 2?", ["1", "2", "3", "4"], "D");
+    makeSlide("Capital of France?", ["Berlin", "Madrid", "Paris", "Rome"], "C");
+    await pptx.writeFile({ fileName: "questions_template.pptx" });
+  } catch (e) {
+    alert(
+      "pptxgenjs is required to generate PPTX template. Please add it to your project if this fails."
+    );
+  }
 }
 
+type TestRow = {
+  id: string;
+  title: string;
+  subject: string;
+  totalQuestions: number;
+};
+
 export default function TeacherQuestionsPage() {
+  const [tests, setTests] = useState<TestRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<string>("");
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [result, setResult] = useState<string>("");
+
+  const selectedTest = useMemo(
+    () => tests.find((t) => t.id === selected),
+    [tests, selected]
+  );
+
+  const load = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/teacher/tests?mine=1");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setTests(
+        data.map((t: any) => ({
+          id: String(t._id),
+          title: t.title,
+          subject: t.subject,
+          totalQuestions: t.totalQuestions || 0,
+        }))
+      );
+    } catch {
+      setTests([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const onUpload = async () => {
+    if (!file || !selectedTest) return;
+    setUploading(true);
+    setResult("");
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("testId", selectedTest.id);
+      fd.append("subject", selectedTest.subject);
+      const res = await fetch("/api/teacher/upload/questions", {
+        method: "POST",
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+      setResult(`Uploaded ${data.count} questions to '${selectedTest.title}'.`);
+      await load();
+    } catch (e: any) {
+      setResult(e.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-8">
       <h1 className="text-2xl font-bold tracking-tight text-blue-700 mb-4">
         Upload Questions
       </h1>
 
-      {/* File drag-and-drop area (placeholder for now) */}
-      <div className="flex flex-col items-center justify-center gap-3 bg-blue-50 border-2 border-dashed border-blue-200 rounded-2xl min-h-[180px] cursor-pointer p-6 text-center">
+      {/* Select Test */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-card border border-border rounded-2xl p-4 shadow-sm items-end">
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium">Select Test</label>
+          {loading ? (
+            <Skeleton className="h-10" />
+          ) : (
+            <select
+              className="px-3 py-2 rounded-lg bg-input border border-border"
+              value={selected}
+              onChange={(e) => setSelected(e.target.value)}
+            >
+              <option value="">Choose a test</option>
+              {tests.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.title} — {t.subject}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium">Subject</label>
+          <input
+            disabled
+            value={selectedTest?.subject || ""}
+            className="px-3 py-2 rounded-lg bg-input border border-border"
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium">Questions in Test</label>
+          <input
+            disabled
+            value={selectedTest?.totalQuestions ?? 0}
+            className="px-3 py-2 rounded-lg bg-input border border-border"
+          />
+        </div>
+      </div>
+
+      {/* File drag-and-drop area */}
+      <div className="flex flex-col items-center justify-center gap-3 bg-blue-50 border-2 border-dashed border-blue-200 rounded-2xl min-h-[180px] p-6 text-center">
         <div className="text-blue-500 text-lg font-semibold">
           Drag & drop your Word (.docx/.doc) or PowerPoint (.pptx) here or
           <span className="underline ml-1">browse</span>
@@ -62,35 +191,31 @@ export default function TeacherQuestionsPage() {
           Supported formats: Word (.docx/.doc) with blocks, or PPTX (one
           question per slide)
         </div>
-        <div className="flex items-center gap-2 mt-2">
+        <input
+          type="file"
+          accept=".doc,.docx,.pptx,.txt"
+          onChange={(e) => setFile(e.target.files?.[0] || null)}
+          className="px-3 py-2 rounded-lg bg-white border border-blue-200"
+        />
+        <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
           <Button size="sm" variant="secondary" onClick={downloadWordTemplate}>
             Download Word Template
           </Button>
+          <Button size="sm" onClick={downloadPptxTemplate}>
+            Download PPTX Template
+          </Button>
           <Button
             size="sm"
-            variant="secondary"
-            onClick={downloadPptxTemplateGuide}
+            onClick={onUpload}
+            disabled={!file || !selectedTest || uploading}
           >
-            Download PPTX Template Guide
+            {uploading ? "Uploading..." : "Upload to Selected Test"}
           </Button>
         </div>
+        {result && <div className="text-sm text-blue-800 mt-2">{result}</div>}
       </div>
 
-      <div className="flex flex-col gap-3 mt-6">
-        <div className="font-semibold text-blue-700">Recent Uploads</div>
-        <ul className="bg-white border border-border rounded-lg shadow px-4 py-3 text-blue-900 text-sm divide-y divide-blue-100">
-          <li className="py-2 flex justify-between items-center">
-            math_final.docx <span>2025-10-20</span>
-          </li>
-          <li className="py-2 flex justify-between items-center">
-            phy_midterm.pptx <span>2025-10-10</span>
-          </li>
-        </ul>
-      </div>
-
-      <div className="flex justify-end">
-        <Button>Upload</Button>
-      </div>
+      {/* Recent Uploads placeholder remains */}
     </div>
   );
 }

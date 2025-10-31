@@ -28,6 +28,6 @@ const TestSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
-const Test = mongoose.model("Test", TestSchema);
+const Test = mongoose.models.Test || mongoose.model("Test", TestSchema);
 
 export default Test;
