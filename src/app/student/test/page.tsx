@@ -26,8 +26,8 @@ export default function StudentTestsList() {
         Pending Tests
       </h1>
       <p className="text-sm text-muted-foreground -mt-4">
-        Tests that you haven't completed yet. Once submitted, they will move to
-        the Results tab.
+        Tests that are scheduled and haven't been completed yet. Once submitted,
+        they will move to the Results tab.
       </p>
       {loading ? (
         <div className="text-sm text-muted-foreground">Loading…</div>
@@ -37,10 +37,10 @@ export default function StudentTestsList() {
             <div className="col-span-full w-full flex flex-col items-center justify-center min-h-[200px] bg-muted border border-border rounded-xl">
               <BookOpen className="w-12 h-12 text-muted-foreground mb-3" />
               <div className="text-xl text-muted-foreground font-semibold">
-                No Pending Tests
+                No Upcoming Tests
               </div>
               <div className="mt-2 text-sm text-muted-foreground">
-                All tests have been completed! 🎉
+                You have no tests scheduled at the moment 📚
               </div>
             </div>
           ) : (

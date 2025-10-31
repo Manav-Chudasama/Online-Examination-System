@@ -42,17 +42,17 @@ export async function GET() {
       const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
       const usersInMonth = allUsers.filter((u) => {
-        const createdDate = new Date(u.createdAt);
+        const createdDate = new Date(u.dateJoined || u.createdAt);
         return createdDate >= monthStart && createdDate <= monthEnd;
       }).length;
 
       const teachersInMonth = teachers.filter((u) => {
-        const createdDate = new Date(u.createdAt);
+        const createdDate = new Date(u.dateJoined || u.createdAt);
         return createdDate >= monthStart && createdDate <= monthEnd;
       }).length;
 
       const studentsInMonth = students.filter((u) => {
-        const createdDate = new Date(u.createdAt);
+        const createdDate = new Date(u.dateJoined || u.createdAt);
         return createdDate >= monthStart && createdDate <= monthEnd;
       }).length;
 
@@ -201,7 +201,7 @@ export async function GET() {
 
     // System stats
     const totalAssignments = allTests.reduce(
-      (sum, test) => sum + (test.assignedTo?.length || 0),
+      (sum, test) => sum + (test.assignedStudents?.length || 0),
       0
     );
     const completionRate =
@@ -213,7 +213,7 @@ export async function GET() {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const activeUsers = allUsers.filter(
-      (u) => new Date(u.createdAt) >= thirtyDaysAgo
+      (u) => new Date(u.dateJoined || u.createdAt) >= thirtyDaysAgo
     ).length;
 
     return NextResponse.json({

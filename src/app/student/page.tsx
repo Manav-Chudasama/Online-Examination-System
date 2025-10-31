@@ -416,13 +416,7 @@ export default function StudentDashboard() {
                 <p className="text-sm text-gray-600 mb-3">
                   Questions: {test.totalQuestions}
                 </p>
-                <Button
-                  onClick={() => router.push(`/student/test/${test._id}`)}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                  size="sm"
-                >
-                  Start Test
-                </Button>
+                
               </div>
             ))}
           </div>

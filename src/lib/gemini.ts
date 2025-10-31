@@ -93,24 +93,26 @@ Remember: Your goal is to help ${
 export async function getChatResponse(
   context: StudentContext,
   userMessage: string,
-  chatHistory: Array<{ role: "user" | "model"; parts: string }>
+  chatHistory: Array<{ role: "user" | "model"; parts: string }>,
+  customSystemPrompt?: string
 ): Promise<string> {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+
+    const systemPrompt = customSystemPrompt || buildSystemPrompt(context);
+    const greeting = customSystemPrompt
+      ? `Hello! I'm your AI teaching assistant. I've analyzed your class performance and I'm here to help you improve student outcomes. You can ask me about class performance, struggling students, test analysis, or teaching strategies. How can I assist you today?`
+      : `Hello ${context.studentName}! I'm your AI study assistant. I've analyzed your test performance and I'm here to help you improve. You can ask me about your performance, get study tips, or discuss any specific tests you've taken. How can I help you today?`;
 
     const chat = model.startChat({
       history: [
         {
           role: "user",
-          parts: [{ text: buildSystemPrompt(context) }],
+          parts: [{ text: systemPrompt }],
         },
         {
           role: "model",
-          parts: [
-            {
-              text: `Hello ${context.studentName}! I'm your AI study assistant. I've analyzed your test performance and I'm here to help you improve. You can ask me about your performance, get study tips, or discuss any specific tests you've taken. How can I help you today?`,
-            },
-          ],
+          parts: [{ text: greeting }],
         },
         ...chatHistory.map((msg) => ({
           role: msg.role,

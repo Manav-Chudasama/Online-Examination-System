@@ -8,17 +8,16 @@ export async function GET() {
   const auth = await getAuthOrThrow("student");
   if ("error" in auth) return auth.error;
   await dbConnect();
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  const end = new Date();
-  end.setHours(23, 59, 59, 999);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  // Get all tests assigned to the student for today
+  // Get all tests assigned to the student from today onwards (upcoming tests)
   const tests = await Test.find({
     assignedStudents: auth.user.id,
-    testDate: { $gte: start, $lte: end },
+    testDate: { $gte: today },
   })
-    .select("title subject durationMinutes startTime endTime")
+    .select("title subject durationMinutes testDate startTime endTime")
+    .sort({ testDate: 1 }) // Sort by date ascending (earliest first)
     .lean();
 
   // Get all completed tests (where result exists and testCompleted is true)

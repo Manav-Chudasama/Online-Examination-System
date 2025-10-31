@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 const navLinks = [
   { name: "Dashboard", href: "/student", icon: HomeIcon },
@@ -47,9 +48,24 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen w-full bg-background">
       {/* Fixed Sidebar */}
       <aside className="fixed inset-y-0 left-0 flex flex-col w-20 md:w-60 bg-green-100 border-r border-border items-center md:items-stretch py-6 gap-4">
-        <div className="flex items-center justify-center text-2xl font-bold tracking-wide text-green-700 mb-10 select-none">
-          <span className="hidden md:inline">STUDENT</span>
-          <span className="md:hidden">STU</span>
+        {/* Logo */}
+        <div className="flex flex-col items-center justify-center mb-4 px-2">
+          <Image
+            src="/images/clg-logo.png"
+            alt="College Logo"
+            width={50}
+            height={50}
+            className="rounded-lg shadow-sm mb-2"
+          />
+          <div className="hidden md:flex flex-col items-center">
+            <span className="text-xl font-bold text-green-700">
+              edu-<span className="text-red-600">xie</span>
+            </span>
+            <span className="text-xs text-green-600 font-medium">STUDENT</span>
+          </div>
+          <span className="md:hidden text-xs font-bold text-green-700">
+            STU
+          </span>
         </div>
         <nav className="flex-1 flex flex-col gap-2">
           {navLinks.map(({ name, href, icon: Icon }) => (

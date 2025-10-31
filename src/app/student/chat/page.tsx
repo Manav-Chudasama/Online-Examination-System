@@ -5,6 +5,7 @@ import ChatMessage from "@/components/chat/ChatMessage";
 import ChatInput from "@/components/chat/ChatInput";
 import QuickActions from "@/components/chat/QuickActions";
 import PerformanceSummary from "@/components/chat/PerformanceSummary";
+import StudyVideosDisplay from "@/components/chat/StudyVideosDisplay";
 import { Trash2, AlertCircle, Sparkles } from "lucide-react";
 
 interface Message {
@@ -21,11 +22,29 @@ interface StudentContext {
   weakestSubject: string | null;
 }
 
+interface YouTubeVideo {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: string;
+  channelTitle: string;
+  publishedAt: string;
+}
+
+interface VideosData {
+  subject: string;
+  avgScore: number;
+  suggestion: string;
+  videos: YouTubeVideo[];
+}
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [context, setContext] = useState<StudentContext | null>(null);
+  const [videosData, setVideosData] = useState<VideosData | null>(null);
+  const [isLoadingVideos, setIsLoadingVideos] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatHistoryRef = useRef<
     Array<{ role: "user" | "model"; parts: string }>
@@ -39,7 +58,7 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
-  // Initialize with welcome message
+  // Initialize with welcome message and auto-load performance data
   useEffect(() => {
     setMessages([
       {
@@ -49,6 +68,41 @@ export default function ChatPage() {
         timestamp: new Date(),
       },
     ]);
+
+    // Silently load performance context without displaying in chat
+    const loadPerformanceData = async () => {
+      const analyzePrompt =
+        "Can you analyze my most recent test and tell me what I did well and where I need to improve?";
+
+      try {
+        const response = await fetch("/api/student/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: analyzePrompt,
+            chatHistory: [],
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.context) {
+          // Only update context, don't display the response
+          setContext(data.context);
+
+          // Update chat history for future context
+          chatHistoryRef.current.push(
+            { role: "user", parts: analyzePrompt },
+            { role: "model", parts: data.response }
+          );
+        }
+      } catch (err: any) {
+        console.error("Failed to load performance data:", err);
+        // Silently fail, user can still interact normally
+      }
+    };
+
+    loadPerformanceData();
   }, []);
 
   const sendMessage = async (messageText: string) => {
@@ -110,6 +164,38 @@ export default function ChatPage() {
     sendMessage(prompt);
   };
 
+  const handleVideoRequest = async () => {
+    if (!context?.weakestSubject) {
+      setError("No weak subject identified yet. Complete some tests first!");
+      return;
+    }
+
+    setIsLoadingVideos(true);
+    setError(null);
+
+    try {
+      const response = await fetch(
+        `/api/student/study-videos?subject=${encodeURIComponent(
+          context.weakestSubject
+        )}`
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch study videos");
+      }
+
+      setVideosData(data);
+      scrollToBottom();
+    } catch (err: any) {
+      console.error("Videos error:", err);
+      setError(err.message || "Failed to load study videos. Please try again.");
+    } finally {
+      setIsLoadingVideos(false);
+    }
+  };
+
   const clearChat = () => {
     setMessages([
       {
@@ -121,6 +207,7 @@ export default function ChatPage() {
     ]);
     chatHistoryRef.current = [];
     setError(null);
+    setVideosData(null);
   };
 
   return (
@@ -139,7 +226,11 @@ export default function ChatPage() {
 
         {context && <PerformanceSummary {...context} />}
 
-        <QuickActions onActionClick={handleQuickAction} disabled={isLoading} />
+        <QuickActions
+          onActionClick={handleQuickAction}
+          onVideoRequest={handleVideoRequest}
+          disabled={isLoading || isLoadingVideos}
+        />
       </aside>
 
       {/* Main Chat Area */}
@@ -174,6 +265,28 @@ export default function ChatPage() {
               timestamp={msg.timestamp}
             />
           ))}
+
+          {/* Study Videos Display */}
+          {videosData && (
+            <StudyVideosDisplay
+              {...videosData}
+              onClose={() => setVideosData(null)}
+            />
+          )}
+
+          {isLoadingVideos && (
+            <div className="flex gap-3 p-4 rounded-lg bg-red-50 mr-8">
+              <div className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center">
+                <Sparkles className="w-5 h-5 animate-pulse" />
+              </div>
+              <div className="flex-1">
+                <span className="font-semibold text-sm">Loading Videos</span>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Finding the best study videos for you...
+                </p>
+              </div>
+            </div>
+          )}
 
           {isLoading && (
             <div className="flex gap-3 p-4 rounded-lg bg-green-50 mr-8">

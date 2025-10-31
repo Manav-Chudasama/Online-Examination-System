@@ -6,15 +6,18 @@ import {
   BarChart3,
   HelpCircle,
   Sparkles,
+  Video,
 } from "lucide-react";
 
 interface QuickActionsProps {
   onActionClick: (action: string, prompt: string) => void;
+  onVideoRequest?: () => void;
   disabled?: boolean;
 }
 
 export default function QuickActions({
   onActionClick,
+  onVideoRequest,
   disabled,
 }: QuickActionsProps) {
   const actions = [
@@ -81,6 +84,23 @@ export default function QuickActions({
             <span className="text-xs">{action.label}</span>
           </Button>
         ))}
+
+        {/* Study Videos Button */}
+        {onVideoRequest && (
+          <>
+            <div className="border-t border-border my-2" />
+            <Button
+              variant="outline"
+              size="sm"
+              className="justify-start gap-2 h-auto py-2.5 text-left hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors bg-red-50/50"
+              onClick={onVideoRequest}
+              disabled={disabled}
+            >
+              <Video className="w-4 h-4 shrink-0" />
+              <span className="text-xs font-semibold">📺 Study Videos</span>
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );

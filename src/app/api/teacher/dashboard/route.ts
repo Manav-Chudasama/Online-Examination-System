@@ -17,9 +17,9 @@ export async function GET() {
     const testIds = tests.map((t) => t._id);
 
     // Get all results for teacher's tests
-    const results = await Result.find({ testId: { $in: testIds } })
-      .populate("studentId", "name email")
-      .populate("testId", "title subject")
+    const results = await Result.find({ test: { $in: testIds } })
+      .populate("student", "name email")
+      .populate("test", "title subject")
       .lean();
 
     // Get unique subjects
@@ -28,8 +28,8 @@ export async function GET() {
     // Calculate total students assigned (unique students across all tests)
     const uniqueStudents = new Set();
     tests.forEach((test) => {
-      if (test.assignedTo) {
-        test.assignedTo.forEach((studentId: any) => {
+      if (test.assignedStudents) {
+        test.assignedStudents.forEach((studentId: any) => {
           uniqueStudents.add(studentId.toString());
         });
       }
@@ -59,9 +59,9 @@ export async function GET() {
           title: test.title,
           subject: test.subject,
           createdAt: test.createdAt,
-          assignedCount: test.assignedTo?.length || 0,
+          assignedCount: test.assignedStudents?.length || 0,
           completedCount: results.filter(
-            (r) => r.testId._id.toString() === testIdStr && r.testCompleted
+            (r: any) => r.test._id.toString() === testIdStr && r.testCompleted
           ).length,
         };
       });
@@ -128,7 +128,7 @@ export async function GET() {
 
     // Test completion rate
     const totalAssignments = tests.reduce(
-      (sum, test) => sum + (test.assignedTo?.length || 0),
+      (sum, test) => sum + (test.assignedStudents?.length || 0),
       0
     );
     const completionRate =
@@ -138,11 +138,11 @@ export async function GET() {
 
     // Top performing students (top 5)
     const studentPerformance = new Map();
-    completedResults.forEach((result) => {
-      const studentId = result.studentId._id.toString();
+    completedResults.forEach((result: any) => {
+      const studentId = result.student._id.toString();
       if (!studentPerformance.has(studentId)) {
         studentPerformance.set(studentId, {
-          student: result.studentId,
+          student: result.student,
           totalTests: 0,
           totalPercentage: 0,
         });
