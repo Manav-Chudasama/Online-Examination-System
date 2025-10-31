@@ -3,35 +3,195 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
-function downloadWordTemplate() {
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>
-  <h2>EDU-X Question Template (Word)</h2>
-  <p>Use the exact format below per question block. Duplicate blocks for more questions.</p>
-  <pre style="font-family: Consolas, monospace;">
-Q1. What is 2 + 2?
-A) 1
-B) 2
-C) 3
-D) 4
-Answer: D
+async function downloadWordTemplate() {
+  try {
+    const { Document, Paragraph, TextRun, HeadingLevel, Packer } = await import(
+      "docx"
+    );
+    const { saveAs } = await import("file-saver");
 
-Q2. Capital of France?
-A) Berlin
-B) Madrid
-C) Paris
-D) Rome
-Answer: C
-  </pre>
-  </body></html>`;
-  const blob = new Blob([html], { type: "application/msword" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "questions_template.doc";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+    const doc = new Document({
+      sections: [
+        {
+          properties: {},
+          children: [
+            // Title
+            new Paragraph({
+              text: "EDU-X Question Template (Word DOCX)",
+              heading: HeadingLevel.HEADING_1,
+              spacing: { after: 200 },
+            }),
+
+            // Instructions
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Instructions:",
+                  bold: true,
+                  size: 24,
+                }),
+              ],
+              spacing: { after: 100 },
+            }),
+            new Paragraph({
+              text: "• Use the exact format shown below for each question",
+              bullet: { level: 0 },
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              text: "• Start each question with Q1., Q2., Q3., etc.",
+              bullet: { level: 0 },
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              text: "• Options must be labeled A), B), C), D)",
+              bullet: { level: 0 },
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              text: "• Add 'Answer: X' after options (where X is A, B, C, or D)",
+              bullet: { level: 0 },
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              text: "• Leave a blank line between questions",
+              bullet: { level: 0 },
+              spacing: { after: 300 },
+            }),
+
+            // Example 1
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Q1. What is 2 + 2?",
+                  bold: true,
+                }),
+              ],
+              spacing: { after: 100 },
+            }),
+            new Paragraph({
+              text: "A) 1",
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              text: "B) 2",
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              text: "C) 3",
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              text: "D) 4",
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Answer: D",
+                  bold: true,
+                  color: "0066CC",
+                }),
+              ],
+              spacing: { after: 300 },
+            }),
+
+            // Example 2
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Q2. Capital of France?",
+                  bold: true,
+                }),
+              ],
+              spacing: { after: 100 },
+            }),
+            new Paragraph({
+              text: "A) Berlin",
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              text: "B) Madrid",
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              text: "C) Paris",
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              text: "D) Rome",
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Answer: C",
+                  bold: true,
+                  color: "0066CC",
+                }),
+              ],
+              spacing: { after: 300 },
+            }),
+
+            // Example 3
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Q3. What color is the sky?",
+                  bold: true,
+                }),
+              ],
+              spacing: { after: 100 },
+            }),
+            new Paragraph({
+              text: "A) Red",
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              text: "B) Green",
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              text: "C) Blue",
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              text: "D) Yellow",
+              spacing: { after: 50 },
+            }),
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Answer: C",
+                  bold: true,
+                  color: "0066CC",
+                }),
+              ],
+              spacing: { after: 300 },
+            }),
+
+            // Footer note
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Note: Delete these examples and add your own questions following the same format.",
+                  italics: true,
+                  color: "666666",
+                }),
+              ],
+              spacing: { before: 300 },
+            }),
+          ],
+        },
+      ],
+    });
+
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob, "questions_template.docx");
+  } catch (e) {
+    console.error("Error generating DOCX:", e);
+    alert("Failed to generate Word template. Please try again.");
+  }
 }
 
 async function downloadPptxTemplate() {
@@ -39,6 +199,35 @@ async function downloadPptxTemplate() {
     const PptxGenJS = (await import("pptxgenjs")) as any;
     const pptx = new (PptxGenJS.default || (PptxGenJS as any))();
     pptx.layout = "LAYOUT_16x9";
+
+    // Instructions slide
+    const instructionsSlide = pptx.addSlide();
+    instructionsSlide.addText("PowerPoint Question Template - Instructions", {
+      x: 0.5,
+      y: 0.5,
+      w: 9,
+      h: 0.8,
+      fontSize: 28,
+      bold: true,
+      color: "0066CC",
+    });
+    instructionsSlide.addText(
+      "How to use this template:\n\n" +
+        "• Each slide = 1 question\n" +
+        "• First text box = Question\n" +
+        "• Options = A), B), C), D) on separate lines\n" +
+        "• Add answer in Notes section as 'Answer: A' (or B, C, D)\n\n" +
+        "Example slides follow →",
+      {
+        x: 0.7,
+        y: 1.5,
+        w: 8.5,
+        h: 3,
+        fontSize: 16,
+        lineSpacing: 24,
+      }
+    );
+
     const makeSlide = (question: string, options: string[], answer: string) => {
       const slide = pptx.addSlide();
       slide.addText(question, {
@@ -48,22 +237,39 @@ async function downloadPptxTemplate() {
         h: 1,
         fontSize: 24,
         bold: true,
+        color: "333333",
       });
       slide.addText(
         options
           .map((o, i) => `${String.fromCharCode(65 + i)}) ${o}`)
           .join("\n"),
-        { x: 0.7, y: 1.4, w: 8.5, fontSize: 18, bullet: true, lineSpacing: 18 }
+        {
+          x: 0.7,
+          y: 1.5,
+          w: 8.5,
+          h: 3,
+          fontSize: 18,
+          lineSpacing: 28,
+          color: "000000",
+        }
       );
       slide.addNotes(`Answer: ${answer}`);
     };
+
     makeSlide("What is 2 + 2?", ["1", "2", "3", "4"], "D");
     makeSlide("Capital of France?", ["Berlin", "Madrid", "Paris", "Rome"], "C");
+    makeSlide(
+      "What color is the sky?",
+      ["Red", "Green", "Blue", "Yellow"],
+      "C"
+    );
+
     await pptx.writeFile({ fileName: "questions_template.pptx" });
   } catch (e) {
     alert(
       "pptxgenjs is required to generate PPTX template. Please add it to your project if this fails."
     );
+    console.error(e);
   }
 }
 
@@ -184,22 +390,22 @@ export default function TeacherQuestionsPage() {
       {/* File drag-and-drop area */}
       <div className="flex flex-col items-center justify-center gap-3 bg-blue-50 border-2 border-dashed border-blue-200 rounded-2xl min-h-[180px] p-6 text-center">
         <div className="text-blue-500 text-lg font-semibold">
-          Drag & drop your Word (.docx/.doc) or PowerPoint (.pptx) here or
+          Drag & drop your Word (.docx) or PowerPoint (.pptx) here or
           <span className="underline ml-1">browse</span>
         </div>
         <div className="text-xs text-blue-700/80">
-          Supported formats: Word (.docx/.doc) with blocks, or PPTX (one
-          question per slide)
+          Supported formats: Word (.docx) with blocks, or PPTX (one question per
+          slide)
         </div>
         <input
           type="file"
-          accept=".doc,.docx,.pptx,.txt"
+          accept=".docx,.pptx,.txt"
           onChange={(e) => setFile(e.target.files?.[0] || null)}
           className="px-3 py-2 rounded-lg bg-white border border-blue-200"
         />
         <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
           <Button size="sm" variant="secondary" onClick={downloadWordTemplate}>
-            Download Word Template
+            Download Word Template (.docx)
           </Button>
           <Button size="sm" onClick={downloadPptxTemplate}>
             Download PPTX Template
