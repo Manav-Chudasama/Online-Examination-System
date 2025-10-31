@@ -97,7 +97,7 @@ export async function getChatResponse(
   customSystemPrompt?: string
 ): Promise<string> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const systemPrompt = customSystemPrompt || buildSystemPrompt(context);
     const greeting = customSystemPrompt
