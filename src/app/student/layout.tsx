@@ -8,6 +8,7 @@ import {
   AwardIcon,
   FileCheck,
   LogOutIcon,
+  MessageSquare,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ const navLinks = [
   { name: "Tests", href: "/student/test", icon: ClockIcon },
   { name: "Results", href: "/student/result", icon: AwardIcon },
   { name: "Review Answers", href: "/student/review", icon: FileCheck },
+  { name: "AI Assistant", href: "/student/chat", icon: MessageSquare },
 ];
 
 export default function StudentLayout({ children }: { children: ReactNode }) {
