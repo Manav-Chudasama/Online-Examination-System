@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongoose-connect";
 import { getAuthOrThrow } from "@/lib/with-auth";
 import Test from "@/models/Test";
+import TermsTemplate from "@/models/TermsTemplate";
 
 export async function GET(req: NextRequest) {
   const auth = await getAuthOrThrow(["teacher", "admin", "superadmin"]);
@@ -27,6 +28,13 @@ export async function POST(req: NextRequest) {
     await req.json();
   if (!title || !subject)
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+
+  // Fetch teacher's terms template
+  const termsTemplate = await TermsTemplate.findOne({
+    teacher: auth.user.id,
+  });
+
+  // Create test with terms snapshot
   const doc = await Test.create({
     title,
     subject,
@@ -38,6 +46,8 @@ export async function POST(req: NextRequest) {
     testDate: startTime || new Date(),
     encryptionKey: "derived",
     status: "upcoming",
+    termsTemplate: termsTemplate?._id || null,
+    termsAndConditions: termsTemplate?.terms || [],
   } as any);
   return NextResponse.json({ id: doc._id });
 }

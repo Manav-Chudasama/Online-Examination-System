@@ -19,7 +19,7 @@ export default function AssignTestsPage() {
   const [studentQuery, setStudentQuery] = useState("");
   const [date, setDate] = useState<string>("");
   const [start, setStart] = useState<string>("");
-  const [duration, setDuration] = useState<number>(60);
+  const [end, setEnd] = useState<string>("");
   const [status, setStatus] = useState<string>("");
 
   const filteredStudents = useMemo(() => {
@@ -85,12 +85,25 @@ export default function AssignTestsPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const students = Array.from(selectedStudentIds);
-    if (!testId || students.length === 0 || !date || !start) return;
+    if (!testId || students.length === 0 || !date || !start || !end) return;
     setSaving(true);
     setStatus("");
     try {
       const startTime = new Date(`${date}T${start}:00`);
-      const endTime = new Date(startTime.getTime() + duration * 60000);
+      const endTime = new Date(`${date}T${end}:00`);
+
+      // Validate end time is after start time
+      if (endTime <= startTime) {
+        setStatus("End time must be after start time.");
+        setSaving(false);
+        return;
+      }
+
+      // Calculate duration in minutes
+      const durationMinutes = Math.round(
+        (endTime.getTime() - startTime.getTime()) / 60000
+      );
+
       await Promise.all(
         students.map((sId) =>
           fetch("/api/admin/assignments", {
@@ -102,7 +115,7 @@ export default function AssignTestsPage() {
               testDate: new Date(date),
               startTime,
               endTime,
-              durationMinutes: duration,
+              durationMinutes,
               status: "assigned",
             }),
           })
@@ -184,14 +197,13 @@ export default function AssignTestsPage() {
 
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-muted-foreground">
-            Duration (minutes)
+            End Time
           </label>
           <input
-            type="number"
-            min={10}
-            step={5}
-            value={duration}
-            onChange={(e) => setDuration(parseInt(e.target.value) || 0)}
+            type="time"
+            required
+            value={end}
+            onChange={(e) => setEnd(e.target.value)}
             className="px-3 py-2 rounded-lg bg-input border border-border focus:ring-2 focus:ring-ring outline-none"
           />
         </div>

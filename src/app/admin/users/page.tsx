@@ -26,6 +26,13 @@ export default function AdminUsersPage() {
   const [creating, setCreating] = useState(false);
   const [loadingTable, setLoadingTable] = useState(true);
 
+  // Update user modal state
+  const [updateModalOpen, setUpdateModalOpen] = useState(false);
+  const [updateUserId, setUpdateUserId] = useState("");
+  const [updateUserName, setUpdateUserName] = useState("");
+  const [updateUserRole, setUpdateUserRole] = useState<Role>("student");
+  const [updating, setUpdating] = useState(false);
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -97,6 +104,39 @@ export default function AdminUsersPage() {
       // ignore for now
     } finally {
       setCreating(false);
+    }
+  };
+
+  const openUpdateModal = (user: UserRow) => {
+    setUpdateUserId(user.id);
+    setUpdateUserName(user.name);
+    setUpdateUserRole(user.role);
+    setUpdateModalOpen(true);
+  };
+
+  const onUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUpdating(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: updateUserId, role: updateUserRole }),
+      });
+      if (!res.ok) throw new Error();
+      setRows((prev) =>
+        prev.map((r) =>
+          r.id === updateUserId ? { ...r, role: updateUserRole } : r
+        )
+      );
+      setUpdateModalOpen(false);
+      setUpdateUserId("");
+      setUpdateUserName("");
+      setUpdateUserRole("student");
+    } catch (e) {
+      // ignore for now
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -291,6 +331,59 @@ export default function AdminUsersPage() {
         </form>
       )}
 
+      {/* Update User Modal */}
+      {updateModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-card border border-border rounded-xl p-6 shadow-lg max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold mb-4">Update User Role</h2>
+            <form onSubmit={onUpdate} className="flex flex-col gap-4">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">
+                  User Name
+                </label>
+                <input
+                  type="text"
+                  value={updateUserName}
+                  disabled
+                  className="w-full px-3 py-2 rounded-lg bg-muted border border-border mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">
+                  Select New Role
+                </label>
+                <select
+                  value={updateUserRole}
+                  onChange={(e) => setUpdateUserRole(e.target.value as Role)}
+                  className="w-full px-3 py-2 rounded-lg bg-input border border-border focus:ring-2 focus:ring-ring outline-none mt-1"
+                >
+                  <option value="student">Student</option>
+                  <option value="teacher">Teacher</option>
+                  <option value="admin">Admin</option>
+                  <option value="superadmin">Super Admin</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2 justify-end mt-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setUpdateModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={updating}>
+                  {updating ? (
+                    <span className="animate-pulse">Updating…</span>
+                  ) : (
+                    "Update"
+                  )}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
         <table className="min-w-full text-sm">
@@ -341,9 +434,9 @@ export default function AdminUsersPage() {
                       <Button
                         size="sm"
                         variant="secondary"
-                        onClick={() => toggleActive(r.id)}
+                        onClick={() => openUpdateModal(r)}
                       >
-                        {r.isActive ? "Suspend" : "Activate"}
+                        Update
                       </Button>
                       <Button
                         size="sm"

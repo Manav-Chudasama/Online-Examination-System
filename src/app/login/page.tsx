@@ -66,7 +66,7 @@ export default function LoginPage() {
               Welcome To
             </div>
             <div className="text-3xl font-extrabold tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-blue-700 via-blue-400 to-red-500 animate-gradient">
-              EDU-<span className="text-red-600">X</span>
+              EDU-<span className="text-red-600">XIE</span>
             </div>
           </div>
         </div>

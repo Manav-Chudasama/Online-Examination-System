@@ -50,7 +50,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           />
           <div className="hidden md:flex flex-col items-center">
             <span className="text-xl font-bold text-primary">
-              edu-<span className="text-red-600">xie</span>
+              EDU-<span className="text-red-600">XIE</span>
             </span>
             <span className="text-xs text-primary/80 font-medium">ADMIN</span>
           </div>

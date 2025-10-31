@@ -60,7 +60,7 @@ export default function TeacherLayout({ children }: { children: ReactNode }) {
           />
           <div className="hidden md:flex flex-col items-center">
             <span className="text-xl font-bold text-blue-700">
-              edu-<span className="text-red-600">xie</span>
+              EDU-<span className="text-red-600">XIE</span>
             </span>
             <span className="text-xs text-blue-600 font-medium">TEACHER</span>
           </div>

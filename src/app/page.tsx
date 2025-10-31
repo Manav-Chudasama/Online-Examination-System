@@ -24,7 +24,7 @@ const Home = () => {
         />
         <div className="flex flex-col">
           <span className="text-2xl font-bold text-primary">
-            edu-<span className="text-red-600">xie</span>
+            EDU-<span className="text-red-600">XIE</span>
           </span>
           <span className="text-xs text-muted-foreground">
             Examination Platform
@@ -42,7 +42,7 @@ const Home = () => {
               transition={{ duration: 0.6 }}
               className="text-4xl md:text-5xl font-extrabold leading-tight tracking-tight text-primary"
             >
-              Welcome to edu-<span className="text-red-600">xie</span>
+              Welcome to EDU-<span className="text-red-600">XIE</span>
               <br />
               Online Examination Platform
             </motion.h1>
@@ -63,14 +63,6 @@ const Home = () => {
             >
               <Button size="lg" className="h-11 px-6 text-base" asChild>
                 <a href="/login">Log In</a>
-              </Button>
-              <Button
-                size="lg"
-                variant="secondary"
-                className="h-11 px-6 text-base"
-                asChild
-              >
-                <a href="/student">Explore as Student</a>
               </Button>
             </motion.div>
             <div className="text-xs text-muted-foreground mt-2">

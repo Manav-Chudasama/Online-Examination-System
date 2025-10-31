@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import User from "@/models/User";
 import dbConnect from "@/lib/mongoose-connect";
 import { getAuthOrThrow } from "@/lib/with-auth";
+import { hashPassword } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   const auth = await getAuthOrThrow(["admin", "superadmin"]);
@@ -19,7 +20,16 @@ export async function POST(req: NextRequest) {
   await dbConnect();
   const body = await req.json();
   const { name, email, role, password } = body;
-  const user = await User.create({ name, email, role, password });
+
+  // Hash the password before saving
+  const hashedPassword = await hashPassword(password);
+
+  const user = await User.create({
+    name,
+    email,
+    role,
+    password: hashedPassword,
+  });
   return NextResponse.json(user);
 }
 
