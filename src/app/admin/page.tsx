@@ -1,94 +1,422 @@
-// import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-// import Chart components (to implement later)
+"use client";
+import { useEffect, useState } from "react";
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
+import {
+  Users,
+  GraduationCap,
+  BookOpen,
+  TrendingUp,
+  Award,
+  Activity,
+} from "lucide-react";
+
+type DashboardData = {
+  summary: {
+    totalUsers: number;
+    totalTeachers: number;
+    totalStudents: number;
+    totalAdmins: number;
+    totalTests: number;
+    totalResults: number;
+    avgPerformance: number;
+    completionRate: number;
+    activeUsers: number;
+  };
+  userGrowth: Array<{
+    month: string;
+    users: number;
+    teachers: number;
+    students: number;
+  }>;
+  testActivity: Array<{ month: string; created: number; completed: number }>;
+  roleDistribution: Array<{ role: string; count: number }>;
+  performanceDistribution: Array<{ range: string; count: number }>;
+  recentTests: Array<{
+    _id: string;
+    title: string;
+    subject: string;
+    teacher: string;
+    createdAt: string;
+    totalQuestions: number;
+  }>;
+  topTeachers: Array<{
+    name: string;
+    testsCreated: number;
+    avgPerformance: number;
+    totalResults: number;
+  }>;
+};
+
+const COLORS = [
+  "#3b82f6",
+  "#10b981",
+  "#f59e0b",
+  "#ef4444",
+  "#8b5cf6",
+  "#ec4899",
+];
 
 export default function AdminDashboard() {
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/admin/dashboard");
+      const result = await res.json();
+      if (res.ok) {
+        setData(result);
+      } else {
+        console.error("Dashboard API error:", result);
+      }
+    } catch (error) {
+      console.error("Failed to load dashboard:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600">Failed to load dashboard data</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-8">
       {/* Greeting section */}
       <div className="flex flex-col md:flex-row justify-between gap-4 items-center">
-        <div className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-blue-800 via-blue-600 to-fuchsia-400 drop-shadow">
-          Let&apos;s Start Your New Course!
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-blue-800 via-blue-600 to-fuchsia-400">
+            Admin Dashboard
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            System-wide overview and analytics
+          </p>
         </div>
-        {/* Upgrade banner */}
-        <div className="flex items-center gap-3 bg-gradient-to-l from-yellow-100 to-yellow-300/40 border border-yellow-300 rounded-xl px-6 py-3 text-sm font-semibold shadow-lg animate-in fade-in slide-in-from-right duration-700 text-zinc-700">
-          Buy Premium and Get Access to New Courses
-          <button className="ml-4 bg-gradient-to-br from-yellow-400 to-orange-300 text-yellow-950 rounded-xl px-5 py-1.5 font-bold text-xs shadow hover:from-yellow-300 hover:to-orange-200 hover:text-yellow-900 transition focus:outline-none border border-yellow-400 active:scale-[.97]">
-            Upgrade Now &rarr;
-          </button>
-        </div>
-      </div>
-      {/* Main widget grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Performance Chart */}
-        <div className="rounded-2xl bg-white border border-border shadow-md p-5 flex flex-col gap-2 transition hover:shadow-xl">
-          <div className="font-semibold text-zinc-500 mb-2">Performance</div>
-          <div className="h-36 flex items-center">
-            {/* Placeholder for chart */}
-            <Skeleton className="w-full h-24 rounded-xl bg-primary/20" />
-          </div>
-          <div className="text-right text-xs text-muted-foreground">
-            7 Courses Completed
-          </div>
-        </div>
-        {/* Students Summary */}
-        <div className="rounded-2xl bg-gradient-to-br from-blue-100 to-violet-100 border border-blue-200 shadow-md p-5 flex flex-col gap-2">
-          <div className="font-semibold text-blue-700 mb-2">
-            Students Summary
-          </div>
-          <div className="h-36 flex items-center justify-center">
-            <Skeleton className="w-24 h-24 rounded-full bg-primary/30" />
-          </div>
-          <div className="text-center text-xl font-bold text-blue-700">
-            350{" "}
-            <span className="text-xs font-normal text-zinc-500">Excellent</span>
-          </div>
-        </div>
-        {/* Time Spent on Learning */}
-        <div className="rounded-2xl bg-white border border-border shadow-md p-5 flex flex-col gap-2 transition hover:shadow-xl">
-          <div className="font-semibold text-zinc-500 mb-2 flex justify-between items-center">
-            Time Spent on Learning{" "}
-            <span className="text-xs text-zinc-400">December</span>
-          </div>
-          <div className="h-36 flex items-end gap-2">
-            <Skeleton className="w-20 h-20 rounded-lg bg-blue-200/40" />
-            <Skeleton className="w-8 h-12 rounded-lg bg-blue-200/40" />
-            <Skeleton className="w-6 h-28 rounded-lg bg-blue-200/40" />
-            <Skeleton className="w-10 h-16 rounded-lg bg-blue-200/40" />
-          </div>
-          <div className="text-right text-xs text-muted-foreground">
-            6 Courses Completed
-          </div>
+        {/* System Status */}
+        <div className="flex items-center gap-3 bg-gradient-to-l from-green-100 to-green-300/40 border border-green-300 rounded-xl px-6 py-3 text-sm font-semibold shadow-lg">
+          <Activity className="w-5 h-5 text-green-700" />
+          <span className="text-zinc-700">System Active</span>
+          <span className="text-xs text-green-700">
+            {data.summary.activeUsers} new users this month
+          </span>
         </div>
       </div>
-      {/* Stats widgets row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <div className="rounded-xl bg-gradient-to-r from-blue-500/10 via-blue-100 to-blue-300/10 border border-blue-200 text-center flex flex-col gap-1 py-7 shadow-md">
-          <div className="text-3xl font-extrabold text-blue-800">271</div>
-          <div className="uppercase text-xs font-medium text-zinc-500">
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white text-center flex flex-col gap-2 py-6 px-4 shadow-lg">
+          <Users className="w-8 h-8 mx-auto mb-1" />
+          <div className="text-3xl font-extrabold">
+            {data.summary.totalUsers}
+          </div>
+          <div className="uppercase text-xs font-medium opacity-90">
             Total Users
           </div>
         </div>
-        <div className="rounded-xl bg-gradient-to-br from-purple-400/10 via-violet-100 to-blue-100 border border-purple-200 text-center flex flex-col gap-1 py-7 shadow-md">
-          <div className="text-3xl font-extrabold text-purple-700">33</div>
-          <div className="uppercase text-xs font-medium text-zinc-500">
+        <div className="rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 text-white text-center flex flex-col gap-2 py-6 px-4 shadow-lg">
+          <GraduationCap className="w-8 h-8 mx-auto mb-1" />
+          <div className="text-3xl font-extrabold">
+            {data.summary.totalTeachers}
+          </div>
+          <div className="uppercase text-xs font-medium opacity-90">
             Teachers
           </div>
         </div>
-        <div className="rounded-xl bg-gradient-to-br from-fuchsia-300/20 via-pink-100 to-fuchsia-50 border border-pink-200 text-center flex flex-col gap-1 py-7 shadow-md">
-          <div className="text-3xl font-extrabold text-pink-600">221</div>
-          <div className="uppercase text-xs font-medium text-zinc-500">
+        <div className="rounded-xl bg-gradient-to-br from-fuchsia-500 to-fuchsia-600 text-white text-center flex flex-col gap-2 py-6 px-4 shadow-lg">
+          <Users className="w-8 h-8 mx-auto mb-1" />
+          <div className="text-3xl font-extrabold">
+            {data.summary.totalStudents}
+          </div>
+          <div className="uppercase text-xs font-medium opacity-90">
             Students
           </div>
         </div>
-        <div className="rounded-xl bg-gradient-to-br from-green-200 via-green-50 to-white border border-green-200 text-center flex flex-col gap-1 py-7 shadow-md">
-          <div className="text-3xl font-extrabold text-green-700">78</div>
-          <div className="uppercase text-xs font-medium text-zinc-500">
+        <div className="rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white text-center flex flex-col gap-2 py-6 px-4 shadow-lg">
+          <BookOpen className="w-8 h-8 mx-auto mb-1" />
+          <div className="text-3xl font-extrabold">
+            {data.summary.totalTests}
+          </div>
+          <div className="uppercase text-xs font-medium opacity-90">
             Total Tests
           </div>
         </div>
+        <div className="rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white text-center flex flex-col gap-2 py-6 px-4 shadow-lg">
+          <Award className="w-8 h-8 mx-auto mb-1" />
+          <div className="text-3xl font-extrabold">
+            {data.summary.avgPerformance}%
+          </div>
+          <div className="uppercase text-xs font-medium opacity-90">
+            Avg Score
+          </div>
+        </div>
+        <div className="rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 text-white text-center flex flex-col gap-2 py-6 px-4 shadow-lg">
+          <TrendingUp className="w-8 h-8 mx-auto mb-1" />
+          <div className="text-3xl font-extrabold">
+            {data.summary.completionRate}%
+          </div>
+          <div className="uppercase text-xs font-medium opacity-90">
+            Completion
+          </div>
+        </div>
       </div>
-      {/* Placeholder for daily activity, course list, etc. */}
+
+      {/* Charts Row 1 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* User Growth Trend */}
+        <div className="rounded-2xl bg-white border border-border shadow-lg p-6">
+          <h3 className="font-bold text-lg text-gray-800 mb-4">
+            User Growth Trend
+          </h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <LineChart data={data.userGrowth}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#6b7280" />
+              <YAxis tick={{ fontSize: 12 }} stroke="#6b7280" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#fff",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="students"
+                stroke="#ec4899"
+                strokeWidth={2}
+                dot={{ fill: "#ec4899", r: 4 }}
+                name="Students"
+              />
+              <Line
+                type="monotone"
+                dataKey="teachers"
+                stroke="#8b5cf6"
+                strokeWidth={2}
+                dot={{ fill: "#8b5cf6", r: 4 }}
+                name="Teachers"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Test Activity */}
+        <div className="rounded-2xl bg-white border border-border shadow-lg p-6">
+          <h3 className="font-bold text-lg text-gray-800 mb-4">
+            Test Activity
+          </h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={data.testActivity}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#6b7280" />
+              <YAxis tick={{ fontSize: 12 }} stroke="#6b7280" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#fff",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Bar
+                dataKey="created"
+                fill="#10b981"
+                radius={[8, 8, 0, 0]}
+                name="Tests Created"
+              />
+              <Bar
+                dataKey="completed"
+                fill="#3b82f6"
+                radius={[8, 8, 0, 0]}
+                name="Tests Completed"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Charts Row 2 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Role Distribution */}
+        <div className="rounded-2xl bg-white border border-border shadow-lg p-6">
+          <h3 className="font-bold text-lg text-gray-800 mb-4">
+            User Role Distribution
+          </h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie
+                data={data.roleDistribution}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ role, count }) => `${role}: ${count}`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="count"
+              >
+                {data.roleDistribution.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#fff",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Performance Distribution */}
+        <div className="rounded-2xl bg-white border border-border shadow-lg p-6">
+          <h3 className="font-bold text-lg text-gray-800 mb-4">
+            Overall Performance Distribution
+          </h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={data.performanceDistribution}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="range" tick={{ fontSize: 12 }} stroke="#6b7280" />
+              <YAxis tick={{ fontSize: 12 }} stroke="#6b7280" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#fff",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Bar dataKey="count" name="Students" radius={[8, 8, 0, 0]}>
+                {data.performanceDistribution.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Bottom Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Tests */}
+        <div className="lg:col-span-2 rounded-2xl bg-white border border-border shadow-lg p-6">
+          <h3 className="font-bold text-lg text-gray-800 mb-4">
+            Recently Created Tests
+          </h3>
+          <div className="space-y-3 max-h-[400px] overflow-y-auto">
+            {data.recentTests.length > 0 ? (
+              data.recentTests.map((test) => (
+                <div
+                  key={test._id}
+                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition"
+                >
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-800">{test.title}</p>
+                    <p className="text-sm text-gray-600">
+                      {test.subject} • By {test.teacher}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-gray-700">
+                      {test.totalQuestions} questions
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(test.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-gray-500 py-8">
+                No tests created yet
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Top Teachers */}
+        <div className="rounded-2xl bg-white border border-border shadow-lg p-6">
+          <h3 className="font-bold text-lg text-gray-800 mb-4">
+            Top Performing Teachers
+          </h3>
+          <div className="space-y-3">
+            {data.topTeachers.length > 0 ? (
+              data.topTeachers.map((teacher, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-white rounded-lg border border-blue-100"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-800 text-sm">
+                        {teacher.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {teacher.testsCreated} tests • {teacher.totalResults}{" "}
+                        results
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xl font-bold text-blue-700">
+                      {teacher.avgPerformance}%
+                    </p>
+                    <p className="text-xs text-gray-500">avg score</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-gray-500 py-8">
+                No teacher data available yet
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
