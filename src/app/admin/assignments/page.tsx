@@ -279,10 +279,10 @@ export default function AssignTestsPage() {
                 className="border border-border rounded-lg p-3 bg-background text-foreground"
               >
                 <div className="text-sm font-medium">
-                  Test: {String(a.test)}
+                  Test: {String(a.title)}
                 </div>
                 <div className="text-xs">
-                  Student: {String(a.studentId || a.student)}
+                  Students: {String(a.assignedStudents.length)}
                 </div>
                 <div className="text-xs">
                   Date:{" "}

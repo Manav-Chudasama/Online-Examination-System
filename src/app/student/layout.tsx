@@ -70,8 +70,13 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
             className="w-full"
             size="sm"
             onClick={async () => {
-              await fetch("/api/auth/logout", { method: "POST" });
-              router.replace("/login");
+              try {
+                await fetch("/api/auth/logout", { method: "POST" });
+              } catch (error) {
+                console.error("Logout error:", error);
+              } finally {
+                window.location.href = "/login";
+              }
             }}
           >
             <LogOutIcon className="size-5 mr-2" />

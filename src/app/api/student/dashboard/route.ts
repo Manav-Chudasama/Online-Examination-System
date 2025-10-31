@@ -15,7 +15,7 @@ export async function GET() {
 
     // Get all tests assigned to this student
     const assignedTests = await Test.find({
-      assignedTo: studentId,
+      assignedStudents: studentId,
     })
       .select("_id title subject durationMinutes totalQuestions createdAt")
       .lean();
