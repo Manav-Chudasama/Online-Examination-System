@@ -5,10 +5,7 @@ A modern, secure, and feature-rich online examination platform built with **Next
 ## 🎬 System Demo
 
 <div align="center">
-  <video width="100%" max-width="800px" autoplay loop muted playsinline>
-    <source src="./public/oes.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
+  <img src="public/oes.gif" width="100%"/>
 </div>
 
 ![Next.js](https://img.shields.io/badge/Next.js-16.0.1-black)
