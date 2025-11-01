@@ -2,8 +2,6 @@
 
 A modern, secure, and feature-rich online examination platform built with **Next.js 16**, **MongoDB**, and **TypeScript**. Perfect for educational institutions, training centers, and organizations conducting online assessments.
 
-## 🎬 System Demo
-
 <div align="center">
   <img src="public/oes.gif" width="100%"/>
 </div>
