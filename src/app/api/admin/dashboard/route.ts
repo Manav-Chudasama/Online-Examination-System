@@ -147,8 +147,12 @@ export async function GET() {
     const teacherPerformance = new Map();
     allResults.forEach((result) => {
       // Find the test and its teacher
+      const resultTestId = typeof result.test === 'string' 
+        ? result.test 
+        : (result.test?._id || result.test)?.toString();
+      
       const test = allTests.find(
-        (t) => (t._id as any).toString() === result.test._id.toString()
+        (t) => (t._id as any).toString() === resultTestId
       );
       if (test && test.teacher) {
         const teacherId = (test.teacher._id as any).toString();
