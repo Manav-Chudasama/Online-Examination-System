@@ -81,7 +81,7 @@ export default function TeacherTestsPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-2xl font-bold tracking-tight text-blue-700 mb-4">
+      <h1 className="text-xl md:text-2xl font-bold tracking-tight text-blue-700 mb-4">
         My Tests
       </h1>
 
@@ -92,14 +92,14 @@ export default function TeacherTestsPage() {
         <input
           required
           placeholder="Title"
-          className="px-3 py-2 rounded-lg bg-input border border-border"
+          className="px-3 py-2 rounded-lg bg-input border border-border text-sm md:text-base"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
         <input
           required
           placeholder="Subject"
-          className="px-3 py-2 rounded-lg bg-input border border-border"
+          className="px-3 py-2 rounded-lg bg-input border border-border text-sm md:text-base"
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
         />
@@ -108,18 +108,23 @@ export default function TeacherTestsPage() {
           min={10}
           step={5}
           placeholder="Duration (min)"
-          className="px-3 py-2 rounded-lg bg-input border border-border"
+          className="px-3 py-2 rounded-lg bg-input border border-border text-sm md:text-base"
           value={durationMinutes}
           onChange={(e) => setDurationMinutes(parseInt(e.target.value) || 60)}
         />
         <div className="col-span-1 md:col-span-2 flex items-center justify-end">
-          <Button type="submit" disabled={creating}>
+          <Button
+            type="submit"
+            disabled={creating}
+            className="w-full md:w-auto"
+          >
             {creating ? "Creating..." : "Create Test"}
           </Button>
         </div>
       </form>
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
         <table className="min-w-full text-sm">
           <thead className="bg-muted/40 text-muted-foreground uppercase text-xs">
             <tr>
@@ -186,6 +191,67 @@ export default function TeacherTestsPage() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="md:hidden flex flex-col gap-4">
+        {loading ? (
+          <Skeleton className="w-full h-32" />
+        ) : tests.length === 0 ? (
+          <div className="bg-card border border-border rounded-xl p-6 text-center text-muted-foreground text-sm">
+            No tests yet
+          </div>
+        ) : (
+          tests.map((t) => (
+            <div
+              key={t.id}
+              className="bg-card border border-border rounded-xl p-4 shadow-sm space-y-3"
+            >
+              <div className="space-y-1">
+                <a
+                  href={`/teacher/tests/details?test=${t.id}`}
+                  className="text-blue-600 hover:underline font-semibold text-base"
+                >
+                  {t.title}
+                </a>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span>{t.subject}</span>
+                  <span>•</span>
+                  <span>{t.totalQuestions} Questions</span>
+                  <span>•</span>
+                  <span className="capitalize">{t.status}</span>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Button size="sm" asChild className="w-full">
+                  <a href={`/teacher/questions?test=${t.id}`}>
+                    Upload Questions
+                  </a>
+                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    asChild
+                    className="flex-1"
+                  >
+                    <a href={`/teacher/tests/details?test=${t.id}`}>
+                      View Details
+                    </a>
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => remove(t.id)}
+                    className="flex-1"
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

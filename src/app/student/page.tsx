@@ -138,58 +138,58 @@ export default function StudentDashboard() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <div className="rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white text-center flex flex-col gap-2 py-6 px-4 shadow-lg">
-          <BookOpen className="w-8 h-8 mx-auto mb-1" />
-          <div className="text-3xl font-extrabold">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+        <div className="rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white text-center flex flex-col gap-1 md:gap-2 py-4 md:py-6 px-2 md:px-4 shadow-lg">
+          <BookOpen className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-1" />
+          <div className="text-2xl md:text-3xl font-extrabold">
             {data.summary.totalAssigned}
           </div>
-          <div className="uppercase text-xs font-medium opacity-90">
+          <div className="uppercase text-[10px] md:text-xs font-medium opacity-90">
             Assigned
           </div>
         </div>
-        <div className="rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white text-center flex flex-col gap-2 py-6 px-4 shadow-lg">
-          <CheckCircle className="w-8 h-8 mx-auto mb-1" />
-          <div className="text-3xl font-extrabold">
+        <div className="rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white text-center flex flex-col gap-1 md:gap-2 py-4 md:py-6 px-2 md:px-4 shadow-lg">
+          <CheckCircle className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-1" />
+          <div className="text-2xl md:text-3xl font-extrabold">
             {data.summary.totalCompleted}
           </div>
-          <div className="uppercase text-xs font-medium opacity-90">
+          <div className="uppercase text-[10px] md:text-xs font-medium opacity-90">
             Completed
           </div>
         </div>
-        <div className="rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white text-center flex flex-col gap-2 py-6 px-4 shadow-lg">
-          <Clock className="w-8 h-8 mx-auto mb-1" />
-          <div className="text-3xl font-extrabold">
+        <div className="rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white text-center flex flex-col gap-1 md:gap-2 py-4 md:py-6 px-2 md:px-4 shadow-lg">
+          <Clock className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-1" />
+          <div className="text-2xl md:text-3xl font-extrabold">
             {data.summary.totalPending}
           </div>
-          <div className="uppercase text-xs font-medium opacity-90">
+          <div className="uppercase text-[10px] md:text-xs font-medium opacity-90">
             Pending
           </div>
         </div>
-        <div className="rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 text-white text-center flex flex-col gap-2 py-6 px-4 shadow-lg">
-          <Award className="w-8 h-8 mx-auto mb-1" />
-          <div className="text-3xl font-extrabold">
+        <div className="rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 text-white text-center flex flex-col gap-1 md:gap-2 py-4 md:py-6 px-2 md:px-4 shadow-lg">
+          <Award className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-1" />
+          <div className="text-2xl md:text-3xl font-extrabold">
             {data.summary.avgScore}%
           </div>
-          <div className="uppercase text-xs font-medium opacity-90">
+          <div className="uppercase text-[10px] md:text-xs font-medium opacity-90">
             Avg Score
           </div>
         </div>
-        <div className="rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white text-center flex flex-col gap-2 py-6 px-4 shadow-lg">
-          <TrendingUp className="w-8 h-8 mx-auto mb-1" />
-          <div className="text-3xl font-extrabold">
+        <div className="rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white text-center flex flex-col gap-1 md:gap-2 py-4 md:py-6 px-2 md:px-4 shadow-lg">
+          <TrendingUp className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-1" />
+          <div className="text-2xl md:text-3xl font-extrabold">
             {data.summary.highestScore}%
           </div>
-          <div className="uppercase text-xs font-medium opacity-90">
+          <div className="uppercase text-[10px] md:text-xs font-medium opacity-90">
             Highest
           </div>
         </div>
-        <div className="rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 text-white text-center flex flex-col gap-2 py-6 px-4 shadow-lg">
-          <Target className="w-8 h-8 mx-auto mb-1" />
-          <div className="text-3xl font-extrabold">
+        <div className="rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 text-white text-center flex flex-col gap-1 md:gap-2 py-4 md:py-6 px-2 md:px-4 shadow-lg">
+          <Target className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-1" />
+          <div className="text-2xl md:text-3xl font-extrabold">
             {data.summary.completionRate}%
           </div>
-          <div className="uppercase text-xs font-medium opacity-90">
+          <div className="uppercase text-[10px] md:text-xs font-medium opacity-90">
             Completion
           </div>
         </div>
@@ -416,7 +416,6 @@ export default function StudentDashboard() {
                 <p className="text-sm text-gray-600 mb-3">
                   Questions: {test.totalQuestions}
                 </p>
-                
               </div>
             ))}
           </div>
