@@ -5,13 +5,14 @@ import Test from "@/models/Test";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await getAuthOrThrow(["teacher", "admin", "superadmin"]);
   if ("error" in auth) return auth.error;
   await dbConnect();
+  const { id } = await params;
   const body = await req.json();
-  const cond: any = { _id: params.id };
+  const cond: any = { _id: id };
   if (auth.user.role === "teacher") cond.teacher = auth.user.id;
   const doc = await Test.findOneAndUpdate(cond, body, { new: true });
   if (!doc) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -20,12 +21,13 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await getAuthOrThrow(["teacher", "admin", "superadmin"]);
   if ("error" in auth) return auth.error;
   await dbConnect();
-  const cond: any = { _id: params.id };
+  const { id } = await params;
+  const cond: any = { _id: id };
   if (auth.user.role === "teacher") cond.teacher = auth.user.id;
   const doc = await Test.findOneAndDelete(cond);
   if (!doc) return NextResponse.json({ error: "Not found" }, { status: 404 });
