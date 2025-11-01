@@ -10,7 +10,7 @@ type CompletedTest = {
     _id: string;
     title: string;
     subject: string;
-  };
+  } | null;
   percentage: number;
   correctAnswers: number;
   totalQuestions: number;
@@ -62,50 +62,52 @@ export default function ReviewAnswersListPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {tests.map((test) => (
-            <Link
-              key={String(test._id)}
-              href={`/student/review/${test.test._id}`}
-              className="group"
-            >
-              <div className="rounded-2xl bg-white border border-border shadow-sm p-6 flex flex-col gap-3 hover:shadow-lg hover:border-green-300 transition-all">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1">
-                    <div className="font-bold text-lg text-green-800 mb-1 group-hover:text-green-600 transition-colors">
-                      {test.test?.title || "Test"}
+          {tests
+            .filter((test) => test.test !== null) // Filter out deleted tests
+            .map((test) => (
+              <Link
+                key={String(test._id)}
+                href={`/student/review/${test.test!._id}`}
+                className="group"
+              >
+                <div className="rounded-2xl bg-white border border-border shadow-sm p-6 flex flex-col gap-3 hover:shadow-lg hover:border-green-300 transition-all">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="font-bold text-lg text-green-800 mb-1 group-hover:text-green-600 transition-colors">
+                        {test.test!.title}
+                      </div>
+                      <div className="text-sm text-muted-foreground mb-3">
+                        Subject: {test.test!.subject}
+                      </div>
                     </div>
-                    <div className="text-sm text-muted-foreground mb-3">
-                      Subject: {test.test?.subject || "-"}
+                    <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-green-600 group-hover:translate-x-1 transition-all" />
+                  </div>
+
+                  <div className="flex items-center gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`w-3 h-3 rounded-full ${
+                          test.percentage >= 70
+                            ? "bg-green-500"
+                            : test.percentage >= 50
+                            ? "bg-yellow-500"
+                            : "bg-red-500"
+                        }`}
+                      />
+                      <span className="font-semibold">{test.percentage}%</span>
+                    </div>
+                    <div className="text-muted-foreground">
+                      {test.correctAnswers}/{test.totalQuestions} correct
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-green-600 group-hover:translate-x-1 transition-all" />
-                </div>
 
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`w-3 h-3 rounded-full ${
-                        test.percentage >= 70
-                          ? "bg-green-500"
-                          : test.percentage >= 50
-                          ? "bg-yellow-500"
-                          : "bg-red-500"
-                      }`}
-                    />
-                    <span className="font-semibold">{test.percentage}%</span>
-                  </div>
-                  <div className="text-muted-foreground">
-                    {test.correctAnswers}/{test.totalQuestions} correct
+                  <div className="mt-2 flex items-center gap-2 text-sm text-green-600 font-medium">
+                    <FileCheck className="w-4 h-4" />
+                    <span>Review Answers</span>
                   </div>
                 </div>
-
-                <div className="mt-2 flex items-center gap-2 text-sm text-green-600 font-medium">
-                  <FileCheck className="w-4 h-4" />
-                  <span>Review Answers</span>
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))}
         </div>
       )}
     </div>
